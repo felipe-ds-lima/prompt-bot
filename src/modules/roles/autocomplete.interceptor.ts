@@ -30,6 +30,19 @@ export class AutocompleteInterceptor extends BaseAutocompleteInterceptor {
         value: 'any',
       })
     }
+    if (focused.name === 'membro') {
+      const guild = interaction.guild
+      const members = guild?.members.cache.map((member) => ({
+        name: member.user.username,
+        value: member.id,
+      }))
+      choices = members ?? []
+
+      choices.unshift({
+        name: 'Todos',
+        value: 'all',
+      })
+    }
 
     return interaction.respond(
       choices

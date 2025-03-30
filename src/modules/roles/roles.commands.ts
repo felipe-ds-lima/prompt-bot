@@ -13,6 +13,7 @@ import { Injectable, Logger, UseInterceptors } from '@nestjs/common'
 
 import { AutocompleteInterceptor } from './autocomplete.interceptor'
 import { AddRolesDto } from './dtos/add-roles.dto'
+import { GiveRolesDto } from './dtos/give-roles.dto'
 import { RemoveRolesDto } from './dtos/remove-roles.dto'
 
 @Injectable()
@@ -238,6 +239,121 @@ export class RolesCommands {
     return interaction.editReply({
       content: `Cargos configurados: ${rolesList.join('\n')}`,
     })
+  }
+
+  @UseInterceptors(AutocompleteInterceptor)
+  @SlashCommand({
+    name: 'dar-cargo',
+    description: 'Dá um cargo a um membro.',
+  })
+  public async onGiveRole(
+    @Context() [interaction]: SlashCommandContext,
+    @Options() options: GiveRolesDto,
+  ) {
+    const { cargo, membro } = options
+
+    if (
+      this.canNotManageRoles(
+        interaction.guild as Guild,
+        interaction.member as GuildMember,
+      )
+    ) {
+      await this.postInModerationChannel(
+        interaction.guild as Guild,
+        interaction.member as GuildMember,
+        `${interaction.member?.user.username} usou o comando /dar-cargo`,
+      )
+      return interaction.editReply({
+        content: '🚫 Você não tem permissão para usar este comando.',
+      })
+    }
+    const guild = interaction.guild as Guild
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] })
+
+    this.logger.log(
+      `Iniciando comando dar-cargo. Cargo: ${cargo}, Membro: ${membro}`,
+    )
+
+    try {
+      if (membro !== 'all') {
+        this.logger.log(
+          `Tentando adicionar cargo para membro específico: ${membro}`,
+        )
+        const member = guild.members.cache.get(membro)
+        if (!member) {
+          this.logger.warn(`Membro não encontrado: ${membro}`)
+          return interaction.editReply({
+            content: '🚫 Membro não encontrado.',
+          })
+        }
+
+        await member.roles.add(cargo)
+        this.logger.log(
+          `Cargo ${cargo} adicionado com sucesso para ${member.user.username}`,
+        )
+        return interaction.editReply({
+          content: `✅ Cargo ${cargo} dado a ${member.user.username}.`,
+        })
+      } else {
+        this.logger.log('Iniciando adição de cargo para todos os membros')
+        await interaction.editReply({
+          content:
+            '⏳ Adicionando cargo a todos os membros... Isso pode demorar um pouco.',
+        })
+
+        this.logger.log('Iniciando fetch de membros')
+        const members = await guild.members.fetch()
+        this.logger.log(`Total de membros encontrados: ${members.size}`)
+
+        let sucessos = 0
+        let falhas = 0
+
+        for (const [, member] of members) {
+          if (member.user.bot) {
+            this.logger.debug(`Pulando bot: ${member.user.username}`)
+            continue
+          }
+
+          try {
+            this.logger.debug(
+              `Tentando adicionar cargo para: ${member.user.username}`,
+            )
+            await member.roles.add(cargo)
+            sucessos++
+
+            if (sucessos % 10 === 0) {
+              this.logger.log(
+                `Progresso: ${sucessos} membros processados com sucesso`,
+              )
+              await interaction.editReply({
+                content: `⏳ Processando... ${sucessos} membros atualizados.`,
+              })
+            }
+          } catch (error) {
+            falhas++
+            this.logger.error(
+              `Erro ao adicionar cargo para ${member.user.username}:`,
+              error instanceof Error ? error.stack : error,
+            )
+          }
+        }
+
+        this.logger.log(
+          `Processo finalizado. Sucessos: ${sucessos}, Falhas: ${falhas}`,
+        )
+        return interaction.editReply({
+          content: `✅ Processo finalizado!\nSucesso: ${sucessos} membros\nFalhas: ${falhas} membros`,
+        })
+      }
+    } catch (error) {
+      this.logger.error(
+        'Erro crítico no comando dar-cargo:',
+        error instanceof Error ? error.stack : error,
+      )
+      return interaction.editReply({
+        content: '❌ Ocorreu um erro ao executar o comando.',
+      })
+    }
   }
 
   @On('messageReactionAdd')

@@ -12,6 +12,7 @@ import { PrismaService } from './prisma/prisma.service'
       token: process.env.DISCORD_TOKEN,
       intents: [
         IntentsBitField.Flags.Guilds,
+        IntentsBitField.Flags.GuildMembers,
         IntentsBitField.Flags.GuildMessages,
         IntentsBitField.Flags.GuildMessageReactions,
         IntentsBitField.Flags.GuildMessagePolls,
