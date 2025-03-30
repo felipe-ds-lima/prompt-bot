@@ -24,6 +24,11 @@ export class AutocompleteInterceptor extends BaseAutocompleteInterceptor {
         value: emoji.id || emoji.identifier || emoji.name || '',
       }))
       choices = emojis ?? []
+
+      choices.unshift({
+        name: 'Qualquer',
+        value: 'any',
+      })
     }
 
     return interaction.respond(

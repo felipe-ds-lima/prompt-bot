@@ -66,7 +66,7 @@ export class RolesCommands {
     description:
       'Configura os cargos do servidor para serem atribuídos por reações.',
   })
-  public async onPing(
+  public async onConfigureRoles(
     @Context() [interaction]: SlashCommandContext,
     @Options() options: AddRolesDto,
   ) {
@@ -222,7 +222,9 @@ export class RolesCommands {
     const rolesList = await Promise.all(
       rolesConfig.map(async (roleConfig) => {
         const role = roles.find((role) => role.id === roleConfig.roleId)
-        const emoji = emojis.find((emoji) => emoji.id === roleConfig.emojiId)
+        const emoji =
+          emojis.find((emoji) => emoji.id === roleConfig.emojiId) ||
+          roleConfig.emojiId
         return `\n==========================\nCargo: ${role?.name}\nEmoji: ${emoji?.toString()}\nID da mensagem: ${roleConfig.messageId}\n\n`
       }),
     )
@@ -256,18 +258,17 @@ export class RolesCommands {
     const role = await this.prisma.roleByEmoji.findFirst({
       where: {
         guildId: reaction.message.guild?.id,
-        emojiId: reaction.emoji.id || undefined,
+        emojiId: reaction.emoji.id || 'any',
         messageId: reaction.message.id,
       },
     })
     console.log(
-      `guildId: ${reaction.message.guild?.id}, roleId: ${role?.roleId}, emojiId: ${reaction.emoji.id}, messageId: ${reaction.message.id}`,
+      `guildId: ${reaction.message.guild?.id}, roleId: ${role?.roleId}, emojiId: ${role?.emojiId}, messageId: ${role?.messageId}`,
     )
 
     if (!role) return
 
     const member = reaction.message.guild?.members.cache.get(user.id)
-
     console.log(`member: ${member?.user.username}`)
     if (!member) return
 
