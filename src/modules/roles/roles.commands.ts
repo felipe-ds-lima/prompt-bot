@@ -229,7 +229,7 @@ export class RolesCommands {
         const emoji =
           emojis.find((emoji) => emoji.id === roleConfig.emojiId) ||
           roleConfig.emojiId
-        return `\n==========================\nCargo: ${role?.name}\nEmoji: ${emoji?.toString()}\nID da mensagem: ${roleConfig.messageId}\n\n`
+        return `\n==========================\nCargo: ${role?.name}\nEmoji: ${emoji?.toString()}\nID da mensagem: ${roleConfig.messageId}`
       }),
     )
 
