@@ -66,6 +66,7 @@ export class RolesCommands {
     name: 'configurar-cargos',
     description:
       'Configura os cargos do servidor para serem atribuídos por reações.',
+    defaultMemberPermissions: [PermissionFlagsBits.ManageRoles],
   })
   public async onConfigureRoles(
     @Context() [interaction]: SlashCommandContext,
@@ -127,6 +128,7 @@ export class RolesCommands {
     name: 'remover-cargo',
     description:
       'Remove um cargo configurado pelo cargo, ou emoji, ou id da mensagem, ou todos.',
+    defaultMemberPermissions: [PermissionFlagsBits.ManageRoles],
   })
   public async onRemoveRole(
     @Context() [interaction]: SlashCommandContext,
@@ -196,6 +198,7 @@ export class RolesCommands {
   @SlashCommand({
     name: 'listar-cargos',
     description: 'Lista todos os cargos configurados.',
+    defaultMemberPermissions: [PermissionFlagsBits.ManageRoles],
   })
   public async onListRoles(@Context() [interaction]: SlashCommandContext) {
     const guild = interaction.guild as Guild
@@ -245,6 +248,7 @@ export class RolesCommands {
   @SlashCommand({
     name: 'dar-cargo',
     description: 'Dá um cargo a um membro.',
+    defaultMemberPermissions: [PermissionFlagsBits.ManageRoles],
   })
   public async onGiveRole(
     @Context() [interaction]: SlashCommandContext,
