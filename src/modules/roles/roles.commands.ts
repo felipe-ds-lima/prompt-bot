@@ -255,34 +255,46 @@ export class RolesCommands {
       }
     }
 
-    const role = await this.prisma.roleByEmoji.findFirst({
+    const roles = await this.prisma.roleByEmoji.findMany({
       where: {
-        guildId: reaction.message.guild?.id,
-        emojiId: reaction.emoji.id || 'any',
-        messageId: reaction.message.id,
+        OR: [
+          {
+            guildId: reaction.message.guild?.id,
+            emojiId: reaction.emoji.id || 'any',
+            messageId: reaction.message.id,
+          },
+          {
+            guildId: reaction.message.guild?.id,
+            emojiId: 'any',
+            messageId: reaction.message.id,
+          },
+        ],
       },
     })
-    console.log(
-      `guildId: ${reaction.message.guild?.id}, roleId: ${role?.roleId}, emojiId: ${role?.emojiId}, messageId: ${role?.messageId}`,
-    )
+    for (const role of roles) {
+      console.log(
+        `guildId: ${reaction.message.guild?.id}, roleId: ${role?.roleId}, emojiId: ${role?.emojiId}, messageId: ${role?.messageId}`,
+      )
+    }
 
-    if (!role) return
+    if (!roles || roles.length === 0) return
 
     const member = reaction.message.guild?.members.cache.get(user.id)
     console.log(`member: ${member?.user.username}`)
     if (!member) return
 
-    if (!member.roles.cache.has(role.roleId)) {
-      await member.roles.add(role.roleId)
-      const roleName =
-        reaction.message.guild?.roles.cache.get(role.roleId)?.name ||
-        'Cargo não encontrado'
-      await this.postInModerationChannel(
-        reaction.message.guild as Guild,
-        member,
-        `✅ ${member.user.username} recebeu o cargo ${roleName}`,
-      )
-      return
+    for (const role of roles) {
+      if (!member.roles.cache.has(role.roleId)) {
+        await member.roles.add(role.roleId)
+        const roleName =
+          reaction.message.guild?.roles.cache.get(role.roleId)?.name ||
+          'Cargo não encontrado'
+        await this.postInModerationChannel(
+          reaction.message.guild as Guild,
+          member,
+          `✅ ${member.user.username} recebeu o cargo ${roleName}`,
+        )
+      }
     }
   }
 }
