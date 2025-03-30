@@ -260,11 +260,15 @@ export class RolesCommands {
         messageId: reaction.message.id,
       },
     })
+    console.log(
+      `guildId: ${reaction.message.guild?.id}, roleId: ${role?.roleId}, emojiId: ${reaction.emoji.id}, messageId: ${reaction.message.id}`,
+    )
 
     if (!role) return
 
     const member = reaction.message.guild?.members.cache.get(user.id)
 
+    console.log(`member: ${member?.user.username}`)
     if (!member) return
 
     if (!member.roles.cache.has(role.roleId)) {
