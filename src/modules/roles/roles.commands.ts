@@ -273,10 +273,13 @@ export class RolesCommands {
 
     if (!member.roles.cache.has(role.roleId)) {
       await member.roles.add(role.roleId)
+      const roleName =
+        reaction.message.guild?.roles.cache.get(role.roleId)?.name ||
+        'Cargo não encontrado'
       await this.postInModerationChannel(
         reaction.message.guild as Guild,
         member,
-        `✅ ${member.user.username} recebeu o cargo ${role.roleId}`,
+        `✅ ${member.user.username} recebeu o cargo ${roleName}`,
       )
       return
     }
